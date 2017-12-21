@@ -35,7 +35,7 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal">
 
-        <!-- Chapter 2 Challenge -->
+        <!-- Chapter 2 Challenge
         <ImageButton
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -47,8 +47,8 @@
             android:layout_height="wrap_content"
             android:id="@+id/next_button"
             android:src="@drawable/arrow_right" />
+        -->
 
-        <!--
         <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -64,7 +64,6 @@
             android:text="@string/next_button"
             android:drawableRight="@drawable/arrow_right"
             android:drawablePadding="4dp" />
-         -->
 
     </LinearLayout>
 

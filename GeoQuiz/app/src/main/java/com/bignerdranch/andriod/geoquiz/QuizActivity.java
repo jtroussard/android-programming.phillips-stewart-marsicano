@@ -3,15 +3,20 @@ package com.bignerdranch.andriod.geoquiz;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.util.Arrays;
+
 public class QuizActivity extends AppCompatActivity {
 
     private static final String TAG = "QuizActivity";
     private static final String KEY_INDEX = "index";
+    private static final String KEY_ANSWERED = "answered";
+    private static final String KEY_SCORE = "player_score";
 
     private Button mTrueButton;
     private Button mFalseButton;
@@ -27,18 +32,26 @@ public class QuizActivity extends AppCompatActivity {
             new Question(R.string.question_americas, true),
             new Question(R.string.question_asia, true)
     };
+    private boolean[] mAnswered = new boolean[mQuestionBank.length]; // length property represents allocated size
 
     private int mCurrentIndex = 0;
+    private int mScore = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Log.d(TAG, "onCreate(Bundle) called");
+        Log.i(TAG, mAnswered.toString());
         setContentView(R.layout.activity_quiz);
+
+        mTrueButton = (Button) findViewById(R.id.true_button);
+        mFalseButton = (Button) findViewById(R.id.false_button);
 
         // Retrieve data from saved state if present
         if (savedInstanceState != null) {
             mCurrentIndex = savedInstanceState.getInt(KEY_INDEX, 0);
+            mAnswered = savedInstanceState.getBooleanArray(KEY_ANSWERED);
+            mScore = savedInstanceState.getInt(KEY_SCORE, 0);
         }
 
         // Text view
@@ -71,39 +84,27 @@ public class QuizActivity extends AppCompatActivity {
                 if (mCurrentIndex > 0) {
                     mCurrentIndex = (mCurrentIndex - 1);
                 } else {
-                    mCurrentIndex = mQuestionBank.length - 1;
+                    mCurrentIndex = mQuestionBank.length-1;
                 }
                 updateQuestion();
             }
         });
         updateQuestion();
 
-        // True & False buttons
-        if (mQuestionBank[mCurrentIndex].getAnswered()) {
-            Log.d(TAG, "Already Answered");
-            mTrueButton.setEnabled(false);
-            mFalseButton.setEnabled(false);
-        } else {
-            Log.d(TAG, "Answering Question");
-            mTrueButton = (Button) findViewById(R.id.true_button);
-            mTrueButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    checkAnswer(true);
-                    registerAnswer();
-                }
-            });
-            mFalseButton = (Button) findViewById(R.id.false_button);
-            mFalseButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    checkAnswer(false);
-                    registerAnswer();
-                }
-            });
-        }
-        Log.d(TAG, "value of answered is ".concat(String.valueOf(mQuestionBank[mCurrentIndex].getAnswered())));
-
+        mTrueButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                checkAnswer(true);
+                deactivateButtons();
+            }
+        });
+        mFalseButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                checkAnswer(false);
+                deactivateButtons();
+            }
+        });
     }
 
     @Override
@@ -111,7 +112,8 @@ public class QuizActivity extends AppCompatActivity {
         super.onSaveInstanceState(savedInstanceState);
         Log.i(TAG, "onSaveInstanceState() called");
         savedInstanceState.putInt(KEY_INDEX, mCurrentIndex);
-
+        savedInstanceState.putBooleanArray(KEY_ANSWERED, mAnswered);
+        savedInstanceState.putInt(KEY_SCORE, mScore);
     }
 
     @Override
@@ -147,23 +149,57 @@ public class QuizActivity extends AppCompatActivity {
     private void updateQuestion() {
         int question = mQuestionBank[mCurrentIndex].getTextResId();
         mQuestionTextView.setText(question);
+        if (mAnswered[mCurrentIndex] == true) {
+            mTrueButton.setEnabled(false);
+            mFalseButton.setEnabled(false);
+        } else {
+            mTrueButton.setEnabled(true);
+            mFalseButton.setEnabled(true);
+        }
     }
 
     private void checkAnswer(boolean userPressedTrue) {
-        boolean answerIsTrue = mQuestionBank[mCurrentIndex].isAnswerTrue();
+        mAnswered[mCurrentIndex] = true; // register answered
 
+        boolean answerIsTrue = mQuestionBank[mCurrentIndex].isAnswerTrue();
         int messageResId = 0;
 
         if(userPressedTrue == answerIsTrue) {
             messageResId = R.string.correct_toast;
+            mScore++;
         } else {
             messageResId = R.string.incorrect_toast;
         }
 
         Toast.makeText(this, messageResId, Toast.LENGTH_SHORT).show();
+        // check if the quiz is over
+        if (isQuizFinished(mAnswered)) {
+            String s1 = "Your Score is ... ".concat(calculateScore(mScore, mQuestionBank.length));
+            Toast t = Toast.makeText(this, s1, Toast.LENGTH_SHORT);
+            t.setGravity(Gravity.TOP,0,0);
+            t.show();
+        }
     }
 
-    private void registerAnswer() {
-        mQuestionBank[mCurrentIndex].setAnswered(true);
+    private void deactivateButtons() {
+        mTrueButton.setEnabled(false);
+        mFalseButton.setEnabled(false);
     }
+
+    private String calculateScore(int score, int numOfQuestions) {
+        double raw = Double.valueOf(score) / numOfQuestions;
+        double exp = raw * 100;
+        String result = String.valueOf(Math.round(exp));
+        return (result.concat("%"));
+    }
+
+    private boolean isQuizFinished(boolean[] answered) {
+        for (boolean v : answered) {
+            if (v == false) {
+                return false;
+            }
+        }
+        return true;
+    }
+
 }

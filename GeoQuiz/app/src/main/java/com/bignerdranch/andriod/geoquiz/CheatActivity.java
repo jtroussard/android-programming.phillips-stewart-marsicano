@@ -14,8 +14,10 @@ public class CheatActivity extends AppCompatActivity {
     private static final String EXTRA_ANSWER_IS_TRUE = "com.bignerdranch.android.geoquiz.answer_is_true";
     private static final String EXTRA_ANSWER_SHOWN = "com.bignerdranch.android.geoquiz.andwer_shown";
     private static final String TAG = "CheatActivity";
+    private static final String KEY_CHEATED_ON = "cheated on";
 
     private boolean mAnswerIsTrue;
+    private boolean mCheatedOn;
 
     private TextView mAnswerTextView;
     private Button mShowAnswerButton;
@@ -36,6 +38,14 @@ public class CheatActivity extends AppCompatActivity {
         Log.d(TAG, "onCreate(Bundle) called");
         setContentView(R.layout.activity_cheat);
 
+        // Retrieve data from saved state if present
+        if (savedInstanceState != null) {
+            mCheatedOn = savedInstanceState.getBoolean(KEY_CHEATED_ON);
+            if (mCheatedOn) {
+                setAnswerShown(true);
+            }
+        }
+
         mAnswerIsTrue = getIntent().getBooleanExtra(EXTRA_ANSWER_IS_TRUE, false);
 
         mAnswerTextView = findViewById(R.id.answer_text_view);
@@ -49,7 +59,8 @@ public class CheatActivity extends AppCompatActivity {
                 } else {
                     mAnswerTextView.setText(R.string.false_button);
                 }
-                setAnswerShown(true);
+                mCheatedOn = true; // this is for state attributes
+                setAnswerShown(true); // this is for packing with Intent
             }
         });
     }
@@ -58,6 +69,14 @@ public class CheatActivity extends AppCompatActivity {
         Intent data = new Intent();
         data.putExtra(EXTRA_ANSWER_SHOWN, isAnswerShown);// remember key-value pair for extras
         setResult(RESULT_OK, data);
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle savedInstanceState) {
+        super.onSaveInstanceState(savedInstanceState);
+        Log.i(TAG, "onSaveInstanceState() called");
+        savedInstanceState.putBoolean(KEY_CHEATED_ON, mCheatedOn);
+
     }
 
     @Override
@@ -89,4 +108,5 @@ public class CheatActivity extends AppCompatActivity {
         super.onDestroy();
         Log.d(TAG, "onDestory() called");
     }
+
 }

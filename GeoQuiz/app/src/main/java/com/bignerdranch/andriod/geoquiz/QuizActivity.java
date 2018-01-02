@@ -19,6 +19,7 @@ public class QuizActivity extends AppCompatActivity {
     private static final String KEY_INDEX = "index";
     private static final String KEY_ANSWERED = "answered";
     private static final String KEY_SCORE = "player_score";
+    private static final String KEY_CHEAT = "player_cheated";
     private static final int REQUEST_CODE_CHEAT = 0;
 
     private Button mTrueButton;
@@ -59,6 +60,7 @@ public class QuizActivity extends AppCompatActivity {
             mCurrentIndex = savedInstanceState.getInt(KEY_INDEX, 0);
             mAnswered = savedInstanceState.getBooleanArray(KEY_ANSWERED);
             mScore = savedInstanceState.getInt(KEY_SCORE, 0);
+            mIsCheater = savedInstanceState.getBoolean(KEY_CHEAT, false);
         }
 
         // Text views
@@ -154,6 +156,7 @@ public class QuizActivity extends AppCompatActivity {
         savedInstanceState.putInt(KEY_INDEX, mCurrentIndex);
         savedInstanceState.putBooleanArray(KEY_ANSWERED, mAnswered);
         savedInstanceState.putInt(KEY_SCORE, mScore);
+        savedInstanceState.putBoolean(KEY_CHEAT, mIsCheater);
     }
 
     @Override
@@ -205,6 +208,7 @@ public class QuizActivity extends AppCompatActivity {
 
     private void checkAnswer(boolean userPressedTrue) {
         mAnswered[mCurrentIndex] = true; // register answered
+        mIsCheater = mCheatedOn[mCurrentIndex];
 
         boolean answerIsTrue = mQuestionBank[mCurrentIndex].isAnswerTrue();
         int messageResId = 0;
